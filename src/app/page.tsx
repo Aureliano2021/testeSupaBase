@@ -1,10 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://imdlbzlbqmqvmjeslnke.supabase.co";
-const supabaseKey: any = process.env.NEXT_PUBLIC_SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { useEffect, useState } from "react";
 
 export default function Page() {
   const [produtos, setProdutos] = useState<any[]>([]);
@@ -14,24 +10,27 @@ export default function Page() {
 
   // Buscar produtos ao carregar
   async function fetchProdutos() {
-    const { data, error } = await supabase.from("teste").select("*");
-    setProdutos(data || []);
-    setError(error ? error.message : null);
+    const res = await fetch("/api/teste");
+    const json = await res.json();
+    if (json.error) setError(json.error);
+    else setProdutos(json.data || []);
   }
 
-  // Buscar ao montar
   useEffect(() => {
     fetchProdutos();
   }, []);
 
   // Inserir novo produto
   async function handleAdd() {
-    const { error } = await supabase
-      .from("teste")
-      .insert([{ name, perfil }]);
-    if (error) {
-      setError(error.message);
-    } else {
+    setError(null);
+    const res = await fetch("/api/teste", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, perfil }),
+    });
+    const json = await res.json();
+    if (json.error) setError(json.error);
+    else {
       setName("");
       setPerfil("");
       fetchProdutos();
